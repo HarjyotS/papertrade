@@ -19,15 +19,26 @@ def login(username, password):
         print(data)
         con.commit()
         con.close()
+        print(data, "logonfirstdata")
+        print(data[1], type(data[1]))
         if data is None:
+            print("sus")
             return False
-        elif data[2] == password:
+        elif data[1] == password:
             iftok = checktok(username)  # check if token exists
-            if iftok:
-                pass
+            print(iftok, "iftok")
+            if iftok is not False:
+                return iftok
             else:
-                newtok = generatetok()
-                insertok(username, newtok)
+                newtok = generatetok(username)
+
+                c = insertok(username, newtok)
+                if c == False:
+                    return False
+                else:
+                    return newtok
+        else:
+            print("susp")
     except exception as e:
         print(e)
         con.close()
@@ -85,11 +96,11 @@ def checktok(username):
         if data is None:
             return False
         else:
-            return True
+            return data[1]
     except exception() as e:
         print(e)
         con.close()
         return False
 
 
-generatetok("harjyot")
+print(login("cem", "123"))
