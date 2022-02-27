@@ -1,18 +1,22 @@
-import requests
+import numpy as np
+import pandas as pd
+import yfinance as yf
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme(style="darkgrid")
 
 
-with open("utils/key.txt") as f:
-    API_KEY = f.read()
+def get_current_price(currency):
+    data = yf.download(tickers=currency, period="1d", interval="1m")
+    return data.iloc[-1]["Close"]
 
-url = f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=USD&apikey={API_KEY}"
-r = requests.get(url)
-data = r.json()
-print(data)
 
-# Historic data
-# https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_{daily/weekly/monthly}&symbol=BTC&market=USD&apikey={API_KEY}
+def get_historic_price(currency, time):
+    currency = yf.Ticker(currency)
+    data = currency.history(period="max").reset_index()
+    return data.loc[data["Date"] == time]["Close"]
 
-url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_MONTHLY&symbol=BTC&market=USD&apikey={API_KEY}"
-r = requests.get(url)
-data = r.json()
-print(data)
+
+def get_period_price(currency, period):
+    return yf.download(tickers=currency, period=period, interval="1m")
