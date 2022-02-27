@@ -101,6 +101,3 @@ def checktok(username):
         print(e)
         con.close()
         return False
-
-
-print(login("cem", "123"))
