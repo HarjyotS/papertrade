@@ -1,3 +1,4 @@
 from utils.register import register
+from utils.login import login
 
-print(register("pez@gmail.com", "cem", "123"))
+print(login("ceem", "123"))

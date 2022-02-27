@@ -5,18 +5,53 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 sns.set_theme(style="darkgrid")
+supported = [
+    "BTC-USD",
+    "ETH-USD",
+    "USDT-USD",
+    "BNB-USD",
+    "USDC-USD",
+    "XRP-USD",
+    "ADA-USD",
+    "SOL-USD",
+    "LUNA1-USD",
+    "HEX-USD",
+    "AVAX-USD",
+    "BUSD-USD",
+    "DOT-USD",
+    "DOGE-USD",
+    "SHIB-USD",
+    "UST-USD",
+    "MATIC-USD",
+    "CRO-USD",
+    "WBTC-USD",
+    "DAI-USD",
+    "ATOM-USD",
+    "LTC-USD",
+    "LINK-USD",
+    "UNI1-USD",
+    "TRX-USD",
+    "BCH-USD",
+    "FTT-USD",
+    "LEO-USD",
+    "NEAR-USD",
+    "ALGO-USD",
+]
 
 
 def get_current_price(currency):
-    data = yf.download(tickers=currency, period="1d", interval="1m")
-    return data.iloc[-1]["Close"]
+    if currency in supported:
+        data = yf.download(tickers=currency, period="1d", interval="1m")
+        return data.iloc[-1]["Close"]
 
 
 def get_historic_price(currency, time):
-    currency = yf.Ticker(currency)
-    data = currency.history(period="max").reset_index()
-    return data.loc[data["Date"] == time]["Close"]
+    if currency in supported:
+        currency = yf.Ticker(currency)
+        data = currency.history(period="max").reset_index()
+        return data.loc[data["Date"] == time]["Close"]
 
 
 def get_period_price(currency, period):
-    return yf.download(tickers=currency, period=period, interval="1m")
+    if currency in supported:
+        return yf.download(tickers=currency, period=period, interval="1m")
