@@ -1,24 +1,18 @@
-from webbrowser import get
-import numpy as np
-import pandas as pd
-import yfinance as yf
-import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-
-supported = ["BTC-USD", "ETH-USD", "LTC-USD", "DOGE-USD"]
-
-# yf.download(tickers=argument1, period=argument2, interval=argument3)
+import requests
 
 
-def get_data(ticker):
-    if ticker in supported:
-        return yf.download(ticker, period="22h", interval="1m")
+with open("utils/key.txt") as f:
+    API_KEY = f.read()
 
+url = f"https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=USD&apikey={API_KEY}"
+r = requests.get(url)
+data = r.json()
+print(data)
 
-print(get_data("BTC-USD"))
-print("\n\n")
-print(get_data("ETH-USD"))
-print("\n\n")
-print(get_data("LTC-USD"))
-print("\n\n")
-print(get_data("DOGE-USD"))
+# Historic data
+# https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_{daily/weekly/monthly}&symbol=BTC&market=USD&apikey={API_KEY}
+
+url = f"https://www.alphavantage.co/query?function=DIGITAL_CURRENCY_MONTHLY&symbol=BTC&market=USD&apikey={API_KEY}"
+r = requests.get(url)
+data = r.json()
+print(data)
