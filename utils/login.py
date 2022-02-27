@@ -1,3 +1,4 @@
+from atexit import register
 from logging import exception
 import sqlite3
 import time

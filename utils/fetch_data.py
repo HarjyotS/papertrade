@@ -5,7 +5,38 @@ import yfinance as yf
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
-supported = ["BTC-USD", "ETH-USD", "LTC-USD", "DOGE-USD"]
+supported = [
+    "BTC-USD",
+    "ETH-USD",
+    "USDT-USD",
+    "BNB-USD",
+    "USDC-USD",
+    "XRP-USD",
+    "ADA-USD",
+    "SOL-USD",
+    "LUNA1-USD",
+    "HEX-USD",
+    "AVAX-USD",
+    "BUSD-USD",
+    "DOT-USD",
+    "DOGE-USD",
+    "SHIB-USD",
+    "UST-USD",
+    "MATIC-USD",
+    "CRO-USD",
+    "WBTC-USD",
+    "DAI-USD",
+    "ATOM-USD",
+    "LTC-USD",
+    "LINK-USD",
+    "UNI1-USD",
+    "TRX-USD",
+    "BCH-USD",
+    "FTT-USD",
+    "LEO-USD",
+    "NEAR-USD",
+    "ALGO-USD",
+]
 
 # yf.download(tickers=argument1, period=argument2, interval=argument3)
 
