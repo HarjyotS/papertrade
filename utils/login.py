@@ -2,7 +2,8 @@ from logging import exception
 import sqlite3
 import time
 import os
-import base64, hashlib
+import base64
+import hashlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -77,7 +78,8 @@ def generatetok(username):
         iterations=100000,
         backend=backend,
     )
-    key = base64.urlsafe_b64encode(kdf.derive((username + str(time.time())).encode()))
+    key = base64.urlsafe_b64encode(kdf.derive(
+        (username + str(time.time())).encode()))
     print(key)
     return key
 
