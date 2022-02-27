@@ -11,7 +11,7 @@ def register(email, id, password):
         cur.execute(
             """INSERT INTO users (email, id, password)
                 VALUES (?, ?, ?)""",
-            (email, id, password),
+            (email, id.lower(), password),
         )
         con.commit()
         con.close()
