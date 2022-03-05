@@ -55,3 +55,6 @@ def get_historic_price(currency, time):
 def get_period_price(currency, period):
     if currency in supported:
         return yf.download(tickers=currency, period=period, interval="1m")
+
+
+print(get_current_price("ALGO-USD"))
