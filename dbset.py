@@ -1,12 +1,16 @@
 import sqlite3 as sql
 
-con = sql.connect("./auth/maindb/data.db")
+con = sql.connect(
+    "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\maindb\\userdata.db"
+)
 cur = con.cursor()
 cur.execute(
     """CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY UNIQUE,
-                password TEXT,
-                email TEXT UNIQUE)
+                holdings TEXT,
+                transactions TEXT,
+                watchlist TEXT,
+                cash INTEGER
             """
 )
 con.commit()

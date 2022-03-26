@@ -1,9 +1,13 @@
-import numpy as np
-import pandas as pd
+import sys
+import json
+
+path_list = sys.path[0].split("\\")
+path_list.pop()
+path_str = "\\".join(path_list)
+sys.path.append(path_str)
+
 import yfinance as yf
-import matplotlib.pyplot as plt
-import seaborn as sns
-import exceptions
+from utils import exceptions
 
 supported = [
     "BTC-USD",
@@ -38,8 +42,6 @@ supported = [
     "ALGO-USD",
 ]
 
-sns.set_theme(style="darkgrid")
-
 
 def get_current_price(currency):
     if currency in supported:
@@ -56,9 +58,22 @@ def get_historic_price(currency, time):
     if currency in supported:
         currency = yf.Ticker(currency)
         data = currency.history(period="max").reset_index()
+        print(type(data))
         return data.loc[data["Date"] == time]["Close"]
 
 
 def get_period_price(currency, period):
     if currency in supported:
-        return yf.download(tickers=currency, period=period, interval="1m")
+        data = yf.download(tickers=currency, period=period, interval="1m")
+        print(type(data))
+        data = json.loads(data.to_json(orient="table"))
+        newdat = []
+        for i in data["data"]:
+            if i == 0:
+                pass
+            else:
+                newdat.append({"Date": i["Datetime"], "price": i["Close"]})
+
+        # data = data.to_json(orient="table")
+
+        return newdat
