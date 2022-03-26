@@ -69,7 +69,6 @@ def insertok(username, key):
 
 def generatetok(username):
     # generate random token that has not been used before
-    # yes im not checking that it hasnt been usef before because all usernames are unique and i am lazy.
     backend = default_backend()
     salt = os.urandom(16)
     kdf = PBKDF2HMAC(
