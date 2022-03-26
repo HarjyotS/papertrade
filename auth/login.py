@@ -49,7 +49,7 @@ def login(username, password):
 
 def insertok(username, key):
     con = sqlite3.connect(
-        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\utils\\auth\\tokens.db"
+        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\tokens.db"
     )
     cur = con.cursor()
     try:

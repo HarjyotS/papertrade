@@ -3,6 +3,7 @@ import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
 import seaborn as sns
+import exceptions
 
 supported = [
     "BTC-USD",
@@ -43,10 +44,12 @@ sns.set_theme(style="darkgrid")
 def get_current_price(currency):
     if currency in supported:
         ticker = yf.Ticker(currency)
-        todays_data = ticker.history(period='1d')
-        return todays_data['Close'][0]
+        todays_data = ticker.history(period="1d")
+        return todays_data["Close"][0]
     else:
-        raise exceptions.CurrencyNotSupported("This currency does not exist or is not supported")
+        raise exceptions.CurrencyNotSupported(
+            "This currency does not exist or is not supported"
+        )
 
 
 def get_historic_price(currency, time):
