@@ -46,7 +46,7 @@ def get_current_price(currency):
         todays_data = ticker.history(period='1d')
         return todays_data['Close'][0]
     else:
-        raise exceptions.CurrencyNotSupported()
+        raise exceptions.CurrencyNotSupported("This currency does not exist or is not supported")
 
 
 def get_historic_price(currency, time):

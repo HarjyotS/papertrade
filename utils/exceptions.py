@@ -1,2 +1,10 @@
 class CurrencyNotSupported(Exception):
-    print("Curreny not supported!")
+    pass
+
+
+class BalanceTooLittle(Exception):
+    pass
+
+
+class NotEnoughCoins(Exception):
+    pass
