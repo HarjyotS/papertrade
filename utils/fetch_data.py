@@ -4,7 +4,6 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_theme(style="darkgrid")
 supported = [
     "BTC-USD",
     "ETH-USD",
@@ -38,11 +37,16 @@ supported = [
     "ALGO-USD",
 ]
 
+sns.set_theme(style="darkgrid")
+
 
 def get_current_price(currency):
     if currency in supported:
-        data = yf.download(tickers=currency, period="1d", interval="1m")
-        return data.iloc[-1]["Close"]
+        ticker = yf.Ticker(currency)
+        todays_data = ticker.history(period='1d')
+        return todays_data['Close'][0]
+    else:
+        raise exceptions.CurrencyNotSupported()
 
 
 def get_historic_price(currency, time):
@@ -55,6 +59,3 @@ def get_historic_price(currency, time):
 def get_period_price(currency, period):
     if currency in supported:
         return yf.download(tickers=currency, period=period, interval="1m")
-
-
-print(get_current_price("ALGO-USD"))
