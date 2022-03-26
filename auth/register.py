@@ -4,7 +4,7 @@ import sqlite3
 
 def register(email, id, password):
     con = sqlite3.connect(
-        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\utils\\maindb\\data.db"
+        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\maindb\\data.db"
     )
     cur = con.cursor()
     try:
