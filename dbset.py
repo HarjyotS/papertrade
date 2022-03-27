@@ -10,7 +10,7 @@ cur.execute(
                 holdings TEXT,
                 transactions TEXT,
                 watchlist TEXT,
-                cash INTEGER
+                cash INTEGER);
             """
 )
 con.commit()
