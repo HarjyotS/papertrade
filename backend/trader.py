@@ -20,11 +20,12 @@ class Trader:
     @classmethod
     def from_file(cls, file_name):
         with open(
-            "../tests/user_data.json", "r""
+            "./tests/user_data.json", "r"
         ) as file:
             user_data = json.load(file)
         return cls(user_data)
 
+  
     @staticmethod
     def generate_transaction_id():
         id = time.time().strip(".")
@@ -41,8 +42,7 @@ class Trader:
     def save_data(self):
         user_data = self.to_dict()
         with open(
-            "../tests/user_data.json", "r"",
-            "w+",
+            "./tests/user_data.json", "w+",
         ) as file:
             json.dump(user_data, file)
 
@@ -84,5 +84,5 @@ class Trader:
         self.save_data()
 
 
-with open("user_data.json") as file:
+with open("./tests/user_data.json") as file:
     print(file.read())
