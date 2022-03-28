@@ -20,7 +20,7 @@ class Trader:
     @classmethod
     def from_file(cls, file_name):
         with open(
-            "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\tests\\user_data.json"
+            "../tests/user_data.json", "r""
         ) as file:
             user_data = json.load(file)
         return cls(user_data)
@@ -41,7 +41,7 @@ class Trader:
     def save_data(self):
         user_data = self.to_dict()
         with open(
-            "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\tests\\user_data.json",
+            "../tests/user_data.json", "r"",
             "w+",
         ) as file:
             json.dump(user_data, file)
