@@ -36,6 +36,7 @@ class Trader:
             user_data = json.load(file)
         return cls(user_data)
 
+
     @staticmethod
     def generate_transaction_id():
         id = time.time().strip(".")

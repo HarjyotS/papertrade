@@ -12,7 +12,7 @@ from cryptography.hazmat.backends import default_backend
 
 def login(username, password):
     con = sqlite3.connect(
-        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\maindb\\data.db"
+        "./maindb/data.db"
     )
     cur = con.cursor()
     try:
@@ -49,7 +49,7 @@ def login(username, password):
 
 def insertok(username, key):
     con = sqlite3.connect(
-        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\tokens.db"
+        "./maindb/tokens.db"
     )
     cur = con.cursor()
     try:
@@ -85,7 +85,7 @@ def generatetok(username):
 
 def checktok(username):
     con = sqlite3.connect(
-        "C:\\Users\\Harjyot\\Desktop\\code\\papertraded\\papertrade\\auth\\maindb\\tokens.db"
+        "./maindb/tokens.db"
     )
     cur = con.cursor()
     try:
