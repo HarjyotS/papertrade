@@ -1,12 +1,11 @@
 import sys
-
-path_list = sys.path[0].split("/")
-path_list.pop()
-path_str = "/".join(path_list)
-sys.path.append(path_str)
+import os
+os.chdir("..")
+sys.path.append(os.getcwd())
 
 from backend import trader
 
 TechBro = trader.Trader.default()
 TechBro.buy("BTC-USD", 0.001)
+print(TechBro.transaction_history)
 TechBro.watch()

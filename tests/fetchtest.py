@@ -1,10 +1,8 @@
 import sys
 import pandas as pd
-
-path_list = sys.path[0].split("\\")
-path_list.pop()
-path_str = "\\".join(path_list)
-sys.path.append(path_str)
+import os
+os.chdir("..")
+sys.path.append(os.getcwd())
 
 from utils import fetch_data as fetch
 
