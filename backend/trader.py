@@ -48,19 +48,10 @@ class Trader:
         if not path:
             path = f"{sys.path[len(sys.path)-1]}/tests/user_data.csv"
 
-        with open(path) as csv_file:
-            csv_reader = csv.DictReader(csv_file)
-            line_count = 0
-            for row in csv_reader:
-                if line_count == 0:
-                    line_count += 1
-
-                if row['name'] != name:
-                    continue
-
+        user_data = utils.csv_to_list(path)
+        for row in user_data:
+            if row['name'] == name:
                 return cls.from_dict(row)
-
-                line_count += 1
 
 
     @staticmethod
