@@ -1,16 +1,16 @@
 import sys
 import os
-os.chdir("..")
-sys.path.append(os.getcwd())
-
-import utils.utils as utils
-import utils.fetch_data as fetch
-import utils.exceptions as exceptions
-import json
-import csv
-import time
-from datetime import datetime
-
+try:
+    import utils.utils as utils
+    import utils.fetch_data as fetch
+    import utils.exceptions as exceptions
+    import json
+    import csv
+    import time
+    from datetime import datetime
+except ImportError:
+    os.chdir("..")
+    sys.path.append(os.getcwd())
 
 class Trader:
     def __init__(self, **kwargs):
@@ -28,7 +28,7 @@ class Trader:
         "equity": 100000,
         "cash": 100000,
         "portfolio": {},
-        "transaction_history": {}
+        "transaction_history": []
         }
         return cls(**user_data)
 
@@ -87,7 +87,7 @@ class Trader:
     def save_data(self):
         user_data = self.to_dict()
         fieldnames = utils.get_keys_of_dict(user_data)
-        with open(f"{sys.path[len(sys.path)-1]}/tests/user_data.csv", mode="w") as csv_file:
+        with open(f"{sys.path[len(sys.path)-1]}/api/user_data.csv", mode="w") as csv_file:
             fieldnames = fieldnames
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
@@ -127,29 +127,33 @@ Coins: {self.portfolio}
 
         self.portfolio[coin] += quantity
         self.cash -= current_coin_price * quantity
-        self.transaction_history = self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity)
+        self.transaction_history.append(self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity))
         self.save_data()
 
 
-        print(f"Bought {quantity} {coin} for {current_coin_price} USD each")
+        message = (f"Bought {quantity} {coin} for {current_coin_price} USD each")
+        print(message)
         print("Total:", current_coin_price * quantity)
         print(self.show_balance())
+        return message
 
 
     def sell(self, coin, quantity):
-        if self.portfolio[coin] < quantity:
+        if self.portfolio.get(coin, 0) < quantity:
             raise exceptions.NotEnoughCoins("You do not have enough coins to sell")
 
         current_coin_price = fetch.get_current_price(coin)
 
         self.portfolio[coin] -= quantity
         self.cash += current_coin_price * quantity
-        self.transaction_history = self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity)
+        self.transaction_history.append(self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity))
         self.save_data()
 
-        print(f"Sold {quantity} {coin} for {current_coin_price} USD each")
+        message = (f"Sold {quantity} {coin} for {current_coin_price} USD each")
+        print(message)
         print("Total:", current_coin_price * quantity)
         print(self.show_balance())
+        return message
 
 
     def watch(self):

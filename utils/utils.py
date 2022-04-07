@@ -14,7 +14,7 @@ def get_keys_of_dict(dict: dict):
 
 
 def double_quote_dict(dict: str):
-    return dict.replace("'", '"')
+    return str(dict).replace("'", '"')
 
 
 def csv_to_list(path): #returns a list of dicts
