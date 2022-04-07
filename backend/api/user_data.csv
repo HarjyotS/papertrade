@@ -1,3 +1,2 @@
 "name","equity","cash","portfolio","transaction_history"
-"TechBro","100000.0","99814.64996484376","{'BTC-USD': 0.004}","{'id': '1648840385', 'time': '2022-04-01 12:13:05.048418', 'cash': 99814.64996484376, 'equity': 100000.0, 'coin_purchased': 'BTC-USD', 'amount_purchased': 0.001}"
-"JohnSmith","0.0","0.0","{}", "{}"
+"TechBro","100000.0","100000.0","{}","[]"
