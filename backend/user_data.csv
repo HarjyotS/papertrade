@@ -1,0 +1,3 @@
+"name","equity","cash","portfolio","transaction_history"
+"TechBro","100000.0","12662.357479020953","{'BTC-USD': 2, 'DOGE-USD': 1}","[{'id': '1649385891', 'time': '2022-04-07 19:44:51.629006', 'cash': 56331.25390625, 'equity': 100000.0, 'coin_purchased': 'BTC-USD', 'amount_purchased': 1}, {'id': '1649385900', 'time': '2022-04-07 19:45:00.759569', 'cash': 12662.5078125, 'equity': 100000.0, 'coin_purchased': 'BTC-USD', 'amount_purchased': 1}, {'id': '1649385925', 'time': '2022-04-07 19:45:25.718051', 'cash': 12662.357479020953, 'equity': 100000.0, 'coin_purchased': 'DOGE-USD', 'amount_purchased': 1}]"
+"Tejas","10000","10000","{}","[]"

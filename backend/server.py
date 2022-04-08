@@ -2,8 +2,6 @@ import os
 import sys
 os.chdir("..")
 sys.path.append(os.getcwd())
-os.chdir("..")
-sys.path.append(os.getcwd())
 os.chdir(sys.path[0])
 
 import utils.utils as utils
@@ -12,7 +10,7 @@ from flask import Flask, json, jsonify
 from flask_restful import Resource, Api, reqparse
 from trader import Trader
 
-def update_data(path=f"{sys.path[len(sys.path)-1]}/api/user_data.csv"):
+def update_data(path=f"{os.getcwd()}/user_data.csv"):
     return utils.csv_to_list(path)
 
 def get_user(name):
@@ -24,6 +22,13 @@ def get_user(name):
 app = Flask(__name__)
 api = Api(app)
 example_data = update_data()
+
+
+class CreateUser(Resource):
+    def post(self, name, starting_cash):
+        trader = Trader.new_user(name=name, starting_cash=starting_cash)
+        return jsonify({'message': f"Succesfully created user {trader.name} with {trader.cash}"})
+
 
 class TraderAPI(Resource):
     def get(self, name):
@@ -52,12 +57,13 @@ class TraderAPI(Resource):
 
         global example_data
         example_data = update_data()
+
         return jsonify(data)
 
 
 
 api.add_resource(TraderAPI, '/trader/<string:name>/', '/trader/<string:name>/<string:operation>/<string:coin>/<int:amount>/')
-
+api.add_resource(CreateUser, '/createuser/<string:name>/<int:starting_cash>/')
 
 if __name__ == '__main__':
     app.run(debug = True)

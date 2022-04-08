@@ -1,16 +1,14 @@
 import sys
 import os
-try:
-    import utils.utils as utils
-    import utils.fetch_data as fetch
-    import utils.exceptions as exceptions
-    import json
-    import csv
-    import time
-    from datetime import datetime
-except ImportError:
-    os.chdir("..")
-    sys.path.append(os.getcwd())
+import json
+import csv
+import time
+from datetime import datetime
+
+import utils.utils as utils
+import utils.fetch_data as fetch
+import utils.exceptions as exceptions
+
 
 class Trader:
     def __init__(self, **kwargs):
@@ -19,6 +17,21 @@ class Trader:
         self.cash = kwargs["cash"]
         self.portfolio = kwargs["portfolio"]
         self.transaction_history = kwargs["transaction_history"]
+        self.debug = kwargs.get('debug', True)
+
+
+    @classmethod
+    def new_user(cls, *, name, starting_cash: int):
+        user_data = {
+        "name": name,
+        "equity": int(starting_cash),
+        "cash": int(starting_cash),
+        "portfolio": {},
+        "transaction_history": []
+        }
+        trader = cls(**user_data)
+        trader.save_data()
+        return trader
 
 
     @classmethod
@@ -87,11 +100,10 @@ class Trader:
     def save_data(self):
         user_data = self.to_dict()
         fieldnames = utils.get_keys_of_dict(user_data)
-        with open(f"{sys.path[len(sys.path)-1]}/api/user_data.csv", mode="w") as csv_file:
-            fieldnames = fieldnames
+        with open(f"{os.getcwd()}/user_data.csv", mode="a") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
 
-            writer.writeheader()
+            #writer.writeheader()
 
             writer.writerow(user_data)
 
@@ -132,9 +144,12 @@ Coins: {self.portfolio}
 
 
         message = (f"Bought {quantity} {coin} for {current_coin_price} USD each")
-        print(message)
-        print("Total:", current_coin_price * quantity)
-        print(self.show_balance())
+
+        if self.debug:
+            print(message)
+            print("Total:", current_coin_price * quantity)
+            print(self.show_balance())
+
         return message
 
 
@@ -150,9 +165,12 @@ Coins: {self.portfolio}
         self.save_data()
 
         message = (f"Sold {quantity} {coin} for {current_coin_price} USD each")
-        print(message)
-        print("Total:", current_coin_price * quantity)
-        print(self.show_balance())
+
+        if self.debug:
+            print(message)
+            print("Total:", current_coin_price * quantity)
+            print(self.show_balance())
+
         return message
 
 
