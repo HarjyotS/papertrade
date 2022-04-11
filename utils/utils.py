@@ -1,6 +1,7 @@
 import json
 import csv
 
+fieldnames = ["id","name","cash","portfolio","transaction_history"]
 
 def float_to_string(flt: float):
     return str(flt).split('.')[0]
@@ -24,3 +25,19 @@ def csv_to_list(path): #returns a list of dicts
         for row in csv_reader:
             list.append(row)
     return list
+
+
+def del_user(path, name):
+    lines = csv_to_list(path)
+    for row in lines:
+        if row['name'] == name:
+            lines.remove(row)
+
+    with open(path, mode="w") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        writer.writeheader()
+
+        writer.writerows(lines)
+
+    return f"Succesfully deleted user {name}"

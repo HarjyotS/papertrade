@@ -4,10 +4,8 @@ class TradeError(Exception):
 class CurrencyNotSupported(TradeError):
     pass
 
-
 class BalanceTooLittle(TradeError):
     pass
-
 
 class NotEnoughCoins(TradeError):
     pass

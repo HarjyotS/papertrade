@@ -13,12 +13,8 @@ from flask import Flask, request, abort, jsonify
 from flask_restful import Resource, Api
 from marshmallow import Schema, fields
 
-app = Flask(__name__)
-api = Api(app)
-example_data = update_data()
-
-
-def update_data(path=f"{os.getcwd()}/user_data.csv"):
+path = f"{os.getcwd()}/user_data.csv"
+def update_data(path=path):
     return utils.csv_to_list(path)
 
 def get_user(name):
@@ -26,38 +22,74 @@ def get_user(name):
         if user['name'] == name:
             return user
 
+app = Flask(__name__)
+api = Api(app)
+example_data = update_data() #Hook up SQLIte database and convert it into a list of dictionaries
 
-class CreateUser(Resource):
-    def post(self, name, starting_cash):
+
+class ManageUser(Resource):
+    def post(self): #Make sure user is rate limited so they cannot create 1000 accounts
         errors = schemas.CreateUserSchema().validate(request.args)
         if errors:
             abort(400, str(errors))
 
-        return jsonify(request.args)
+        new_user = Trader.new_user(**request.args)
 
-        return jsonify({'message': f"Succesfully created user {trader.name} with {trader.cash}"})
+        return jsonify({'message': f"Succesfully created user {new_user.name} and id {new_user.id} with starting cash of {new_user.cash}"})
+
+
+    def delete(self): #Make sure user is authorized to delete their own account
+        errors = schemas.DeleteUserSchema().validate(request.args)
+        if errors:
+            abort(400, str(errors))
+
+        res = utils.del_user(path, request.args['name'])
+
+        return jsonify({'message': res})
 
 
 class TraderAPI(Resource):
     def get(self, name):
         global example_data
         example_data = update_data()
-        return jsonify(get_user(name))
 
-    def post(self, operation, name, coin, amount):
-        trader = Trader.from_dict(get_user(name))
-        if operation == "buy":
-            func = trader.buy
-        elif operation == "sell":
-            func = trader.sell
+        errors = schemas.GetUserDataSchema().validate(request.args)
+        if errors:
+            abort(400, str(errors))
+
+        user_data = get_user(name)
+        if not user_data:
+            abort(404, f"User {name} not found")
+
+        trader = Trader.from_dict(user_data)
+
+        if request.args.get('asset'):
+            data = getattr(trader, request.args['asset'])
         else:
-            res = f"Invalid Operation: {operation}"
+            data = trader.to_dict()
 
-        if func:
-            try:
-                res = func(coin, amount)
-            except exceptions.TradeError as error:
-                res = str(error)
+        return jsonify(data)
+
+
+class BuySell(Resource):
+    operation = None
+
+    def post(self, name):
+        errors = schemas.BuySellSchema().validate(request.args)
+        if errors:
+            abort(400, str(errors))
+
+        user_data = get_user(name)
+        if not user_data:
+            abort(404, f"User {name} not found")
+
+        trader = Trader.from_dict(user_data)
+
+        try:
+            func = getattr(trader, self.operation)
+            res = func(request.args['coin'], float(request.args['quantity']))
+        except exceptions.TradeError as error:
+            res = str(error)
 
         data = {
         'message': res,
@@ -69,8 +101,19 @@ class TraderAPI(Resource):
         return jsonify(data)
 
 
-api.add_resource(TraderAPI, '/trader/<string:name>/', '/trader/<string:name>/<string:operation>/<string:coin>/<int:amount>/')
-api.add_resource(CreateUser, '/createuser/<string:name>/<int:starting_cash>/')
+class Buy(BuySell):
+    operation = "buy"
+
+class Sell(BuySell):
+    operation = "sell"
+
+
+api.add_resource(TraderAPI, '/trader/<string:name>')
+api.add_resource(Buy, '/trader/<string:name>/buy', endpoint='trader/buy')
+api.add_resource(Sell, '/trader/<string:name>/sell', endpoint='trader/sell')
+
+api.add_resource(ManageUser, '/manage')
+
 
 if __name__ == '__main__':
     app.run(debug = True)
