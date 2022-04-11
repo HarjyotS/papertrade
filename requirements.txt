@@ -4,5 +4,4 @@ matplotlib
 pandas
 requests
 flask
-pandas
 flask_restful
