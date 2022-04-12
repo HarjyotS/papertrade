@@ -3,9 +3,7 @@ import sqlite3
 
 
 def register(email, id, password):
-    con = sqlite3.connect(
-        "./maindb/data.db"
-    )
+    con = sqlite3.connect("./maindb/data.db")
     cur = con.cursor()
     try:
         cur.execute(
@@ -20,3 +18,6 @@ def register(email, id, password):
         print(e)
         con.close()
         return False
+
+
+register("e", "e", "e")
