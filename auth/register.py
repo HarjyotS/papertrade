@@ -18,6 +18,3 @@ def register(email, id, password):
         print(e)
         con.close()
         return False
-
-
-register("e", "e", "e")

@@ -1,10 +1,11 @@
-class CurrencyNotSupported(Exception):
+class TradeError(Exception):
     pass
 
-
-class BalanceTooLittle(Exception):
+class CurrencyNotSupported(TradeError):
     pass
 
+class BalanceTooLittle(TradeError):
+    pass
 
-class NotEnoughCoins(Exception):
+class NotEnoughCoins(TradeError):
     pass

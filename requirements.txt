@@ -3,3 +3,5 @@ yfinance
 matplotlib
 pandas
 requests
+flask
+flask_restful
