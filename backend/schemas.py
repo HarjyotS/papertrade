@@ -3,21 +3,11 @@ import utils.utils as utils
 import os
 
 class CreateUserSchema(Schema):
-    name = fields.Str(required=True)
+    username = fields.Str(required=True)
     starting_cash = fields.Float(required=True)
 
 class DeleteUserSchema(Schema):
-    name = fields.Str(required=True)
-
-    @validates("name")
-    def validate_name(self, name):
-        users = utils.csv_to_list(f"{os.getcwd()}/user_data.csv")
-        for user_data in users:
-            if user_data['name'] == name:
-                return
-        else:
-            raise ValidationError(f"User {name} not found")
-
+    username = fields.Str(required=True)
 
 class GetUserDataSchema(Schema):
     asset = fields.Str()

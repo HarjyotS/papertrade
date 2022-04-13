@@ -1,8 +1,8 @@
 import sys
 import os
 import json
-import csv
 import time
+import random
 from datetime import datetime
 
 import utils.utils as utils
@@ -12,8 +12,8 @@ import utils.exceptions as exceptions
 
 class Trader:
     def __init__(self, **kwargs):
-        self.id = kwargs['id']
-        self.name = kwargs['name']
+        self.username = kwargs['username']
+        self.displayname = kwargs.get('displayname', self.username)
         self.cash = kwargs["cash"]
         self.portfolio = kwargs["portfolio"]
         self.equity = self.calculate_equity()
@@ -22,50 +22,64 @@ class Trader:
 
 
     @classmethod
-    def new_user(cls, *, name, starting_cash: int):
+    def new_user(cls, *, username, starting_cash: int):
         user_data = {
-        "id": cls.generate_id(),
-        "name": name,
+        "username": username,
+        "displayname": username,
         "cash": int(starting_cash),
         "portfolio": {},
         "transaction_history": []
         }
         trader = cls(**user_data)
-        trader.save_data()
         return trader
 
 
-    @classmethod
-    def default(cls):
+    def to_dict(self):
         user_data = {
-        "id": cls.generate_id(),
-        "name": "TechBro",
-        "cash": 100000,
-        "portfolio": {},
-        "transaction_history": []
+            "username": self.username,
+            "displayname": self.displayname,
+            "cash": self.cash,
+            "equity": self.calculate_equity(),
+            "portfolio": self.portfolio,
+            "transaction_history": self.transaction_history,
         }
-        return cls(**user_data)
+        return user_data
 
 
+    #Creates a Trader instance from a dictionary where 'portfolio' and 'transaction_history' are string serialized dictionaries
     @classmethod
     def from_dict(cls, user_data: dict):
-        user_data['id'] = user_data['id']
-        user_data['name'] = str(user_data['name'])
+        user_data['username'] = str(user_data['username'])
+        user_data['displayname'] = str(user_data['displayname'])
         user_data['cash'] = float(user_data['cash'])
         user_data['portfolio'] = json.loads(utils.double_quote_dict(user_data['portfolio']))
         user_data['transaction_history'] = json.loads(utils.double_quote_dict(user_data['transaction_history']))
         return cls(**user_data)
 
 
+    #Creates a Trader instance from an sqlite database given the username
     @classmethod
-    def from_file(cls, path=None, *, name):
-        if not path:
-            path = f"{sys.path[len(sys.path)-1]}/tests/user_data.csv"
+    def from_db(cls, cursor, *, username):
+        #Returns a dictionary user_data from an sqlite database
+        rows = cursor.execute(
+        "SELECT username, displayname, cash, portfolio, transaction_history FROM UserData WHERE username = ?",
+        (username,),
+        ).fetchall()
 
-        user_data = utils.csv_to_list(path)
-        for row in user_data:
-            if row['name'] == name:
-                return cls.from_dict(row)
+        if not rows:
+            raise exceptions.AccountDoesNotExist(f"'{username}' is not a valid account")
+
+        data = rows[0]
+
+        user_data = {
+        "username": data[0],
+        "displayname": data[1],
+        "cash": data[2],
+        "portfolio": data[3],
+        "transaction_history": data[4]
+        }
+
+        return cls.from_dict(user_data)
 
 
     @staticmethod
@@ -87,30 +101,17 @@ class Trader:
         return transaction_data
 
 
-    def to_dict(self):
-        user_data = {
-            "id": self.id,
-            "name": self.name,
-            "cash": self.cash,
-            "equity": self.calculate_equity(),
-            "portfolio": self.portfolio,
-            "transaction_history": self.transaction_history,
-        }
-        return user_data
+    def initial_save_data(self, cursor):
+        cursor.execute(
+        "INSERT INTO UserData VALUES (?, ?, ?, ?, ?)",
+        (self.username, self.displayname, int(self.cash), str(self.portfolio), str(self.transaction_history))
+        )
 
-
-    def save_data(self):
-        path = f"{os.getcwd()}/user_data.csv"
-        utils.del_user(path, self.name)
-        user_data = self.to_dict()
-        del user_data['equity']
-        fieldnames = utils.get_keys_of_dict(user_data)
-        with open(path, mode="a") as csv_file:
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-
-            #writer.writeheader()
-
-            writer.writerow(user_data)
+    def save_data(self, cursor):
+        cursor.execute(
+        "UPDATE UserData SET username = ?, displayname = ?, cash = ?, portfolio = ?, transaction_history = ? WHERE username = ?",
+        (self.username, self.displayname, self.cash, str(self.portfolio), str(self.transaction_history), self.username)
+        )
 
 
     def calculate_equity(self):
@@ -145,7 +146,6 @@ Coins: {self.portfolio}
         self.portfolio[coin] += quantity
         self.cash -= (current_coin_price * quantity)
         self.transaction_history.append(self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity))
-        self.save_data()
 
 
         message = (f"Bought {quantity} {coin} for {current_coin_price} USD each")
@@ -167,7 +167,6 @@ Coins: {self.portfolio}
         self.portfolio[coin] -= quantity
         self.cash += current_coin_price * quantity
         self.transaction_history.append(self.log_transaction(cash=self.cash, equity=self.equity, coin=coin, quantity=quantity))
-        self.save_data()
 
         message = (f"Sold {quantity} {coin} for {current_coin_price} USD each")
 
