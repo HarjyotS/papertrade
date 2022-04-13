@@ -21,3 +21,14 @@ class GetUserDataSchema(Schema):
 class BuySellSchema(Schema):
     coin = fields.Str(required=True)
     quantity = fields.Float(required=True)
+
+
+class LoginSchema(Schema):
+    username = fields.Str(required=True)
+    password = fields.Str(required=True)
+
+
+class RegisterSchema(Schema):
+    email = fields.Str(required=True)
+    username = fields.Str(required=True)
+    password = fields.Str(required=True)

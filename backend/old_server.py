@@ -1,6 +1,7 @@
 import flask
-from auth.register import register
-from auth.login import login
+from flask import jsonify
+from backend.auth.register import register
+from backend.auth.login import login
 
 # this is only for api calls, no serving html data
 
@@ -10,7 +11,8 @@ app = flask.Flask(__name__)
 @app.route("/register", methods=["POST"])
 def register_account():
     # get form-data from the request
-    c = flask.request.form
+    c = flask.request.headers
+    return jsonify({"message": str(c)})
     print(c["email"], c["id"], c["password"])
     re = register(email=c["email"], id=c["id"], password=c["password"])
     if re is True:
@@ -29,4 +31,4 @@ def login_account():
         return {"status": "failure"}, 400
 
 
-app.run()
+app.run(debug=True)

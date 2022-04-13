@@ -8,6 +8,8 @@ import utils.utils as utils
 import utils.exceptions as exceptions
 import schemas
 from trader import Trader
+from auth.register import register
+from auth.login import login
 
 from flask import Flask, request, abort, jsonify
 from flask_restful import Resource, Api
@@ -17,6 +19,36 @@ from contextlib import closing
 
 app = Flask(__name__)
 api = Api(app)
+
+
+class Login(Resource):
+    def post(self):
+        errors = schemas.LoginSchema().validate(request.args)
+        if errors:
+            abort(400, str(errors))
+
+        args = request.args
+
+        token = login(username=args['username'], password=args['password'])
+        if token:
+            return jsonify({'message': 'success', 'token': token})
+        else:
+            abort(400)
+
+
+class Register(Resource):
+    def post(self):
+        errors = schemas.RegisterSchema().validate(request.args)
+        if errors:
+            abort(400, str(errorss))
+
+        args = request.args
+
+        re = register(email=args['email'], id=args['username'], password=args['password'])
+        if re:
+            return jsonify({'message': 'success'})
+        else:
+            abort(400)
 
 
 class ManageUser(Resource):
@@ -112,7 +144,8 @@ class Sell(BuySell):
 api.add_resource(TraderAPI, '/trader/<string:username>')
 api.add_resource(Buy, '/trader/<string:username>/buy', endpoint='trader/buy')
 api.add_resource(Sell, '/trader/<string:username>/sell', endpoint='trader/sell')
-
+api.add_resource(Login, '/login')
+api.add_resource(Register, '/register')
 api.add_resource(ManageUser, '/manage')
 
 
