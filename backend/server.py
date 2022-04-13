@@ -12,19 +12,11 @@ from trader import Trader
 from flask import Flask, request, abort, jsonify
 from flask_restful import Resource, Api
 from marshmallow import Schema, fields
-
-path = f"{os.getcwd()}/user_data.csv"
-def update_data(path=path):
-    return utils.csv_to_list(path)
-
-def get_user(name):
-    for user in example_data:
-        if user['name'] == name:
-            return user
+import sqlite3
+from contextlib import closing
 
 app = Flask(__name__)
 api = Api(app)
-example_data = update_data() #Hook up SQLIte database and convert it into a list of dictionaries
 
 
 class ManageUser(Resource):
@@ -33,9 +25,12 @@ class ManageUser(Resource):
         if errors:
             abort(400, str(errors))
 
-        new_user = Trader.new_user(**request.args)
+        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                new_user = Trader.new_user(**request.args)
+                new_user.initial_save_data(cursor)
 
-        return jsonify({'message': f"Succesfully created user {new_user.name} and id {new_user.id} with starting cash of {new_user.cash}"})
+        return jsonify({'message': f"Succesfully created user {new_user.username} with starting cash of {new_user.cash}"})
 
 
     def delete(self): #Make sure user is authorized to delete their own account
@@ -43,25 +38,30 @@ class ManageUser(Resource):
         if errors:
             abort(400, str(errors))
 
-        res = utils.del_user(path, request.args['name'])
+        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                cursor.execute(
+                "DELETE from UserData WHERE username = ?",
+                (request.args['username'], )
+                )
 
-        return jsonify({'message': res})
+        return jsonify({'message': "Success"})
 
 
 class TraderAPI(Resource):
-    def get(self, name):
-        global example_data
-        example_data = update_data()
-
+    def get(self, username):
         errors = schemas.GetUserDataSchema().validate(request.args)
+
+        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                try:
+                    trader = Trader.from_db(cursor, username=username)
+                except exceptions.AccountDoesNotExist as error:
+                    errors[username] = "Account does not exist."
+
         if errors:
             abort(400, str(errors))
 
-        user_data = get_user(name)
-        if not user_data:
-            abort(404, f"User {name} not found")
-
-        trader = Trader.from_dict(user_data)
 
         if request.args.get('asset'):
             data = getattr(trader, request.args['asset'])
@@ -74,29 +74,30 @@ class TraderAPI(Resource):
 class BuySell(Resource):
     operation = None
 
-    def post(self, name):
+    def post(self, username):
         errors = schemas.BuySellSchema().validate(request.args)
+
+        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                try:
+                    trader = Trader.from_db(cursor, username=username)
+
+                    try:
+                        func = getattr(trader, self.operation)
+                        res = func(request.args['coin'], float(request.args['quantity']))
+                        trader.save_data(cursor)
+                    except exceptions.TradeError as error:
+                        errors["TradeError"] = error
+
+                except exceptions.AccountDoesNotExist as error:
+                    errors[username] = "Account does not exist."
+
         if errors:
             abort(400, str(errors))
-
-        user_data = get_user(name)
-        if not user_data:
-            abort(404, f"User {name} not found")
-
-        trader = Trader.from_dict(user_data)
-
-        try:
-            func = getattr(trader, self.operation)
-            res = func(request.args['coin'], float(request.args['quantity']))
-        except exceptions.TradeError as error:
-            res = str(error)
 
         data = {
         'message': res,
         }
-
-        global example_data
-        example_data = update_data()
 
         return jsonify(data)
 
@@ -108,9 +109,9 @@ class Sell(BuySell):
     operation = "sell"
 
 
-api.add_resource(TraderAPI, '/trader/<string:name>')
-api.add_resource(Buy, '/trader/<string:name>/buy', endpoint='trader/buy')
-api.add_resource(Sell, '/trader/<string:name>/sell', endpoint='trader/sell')
+api.add_resource(TraderAPI, '/trader/<string:username>')
+api.add_resource(Buy, '/trader/<string:username>/buy', endpoint='trader/buy')
+api.add_resource(Sell, '/trader/<string:username>/sell', endpoint='trader/sell')
 
 api.add_resource(ManageUser, '/manage')
 

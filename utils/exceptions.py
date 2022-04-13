@@ -9,3 +9,6 @@ class BalanceTooLittle(TradeError):
 
 class NotEnoughCoins(TradeError):
     pass
+
+class AccountDoesNotExist(Exception):
+    pass
