@@ -9,13 +9,12 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 
+path = f"{os.getcwd()}/auth/maindb/data.db"
+tokens_path = f"{os.getcwd()}/auth/maindb/tokens.db"
 
 def login(username, password):
-    path = f"{os.getcwd()}/auth/maindb/data.db"
     print(path)
-    con = sqlite3.connect(
-        path
-    )
+    con = sqlite3.connect(path)
     cur = con.cursor()
     try:
         cur.execute("SELECT * FROM users WHERE id =?", (username.lower(),))
@@ -44,14 +43,14 @@ def login(username, password):
         else:
             print("susp")
     except Exception as e:
-        print(e)
+        print(e, "HERE")
         con.close()
         return False
 
 
 def insertok(username, key):
     con = sqlite3.connect(
-        "./maindb/tokens.db"
+        tokens_path
     )
     cur = con.cursor()
     try:
@@ -63,8 +62,8 @@ def insertok(username, key):
         con.commit()
         con.close()
         return True
-    except exception() as e:
-        print(e)
+    except Exception as e:
+        print(e, "HERE1")
         con.close()
         return False
 
@@ -87,7 +86,7 @@ def generatetok(username):
 
 def checktok(username):
     con = sqlite3.connect(
-        "./maindb/tokens.db"
+        tokens_path
     )
     cur = con.cursor()
     try:
@@ -100,7 +99,7 @@ def checktok(username):
             return False
         else:
             return data[1]
-    except exception() as e:
-        print(e)
+    except Exception as e:
+        print(e, "HERE2")
         con.close()
         return False

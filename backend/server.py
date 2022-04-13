@@ -29,18 +29,21 @@ class Login(Resource):
 
         args = request.args
 
-        token = login(username=args['username'], password=args['password'])
+        try:
+            token = login(username=args['username'], password=args['password'])
+        except Exception as error:
+            abort(400, str(error))
+
         if token:
-            return jsonify({'message': 'success', 'token': token})
-        else:
-            abort(400)
+            return jsonify({'message': 'success', 'token': token.decode('utf-8')})
+
 
 
 class Register(Resource):
     def post(self):
         errors = schemas.RegisterSchema().validate(request.args)
         if errors:
-            abort(400, str(errorss))
+            abort(400, str(errors))
 
         args = request.args
 
