@@ -1,12 +1,13 @@
+from distutils.debug import DEBUG
 import os
 import sys
 
-from cv2 import log
 
-os.chdir("..")
-os.chdir("..")
-sys.path.append(os.getcwd())
-os.chdir(sys.path[0])
+if __name__ == "__main__":
+    os.chdir("..")
+    os.chdir("..")
+    sys.path.append(os.getcwd())
+    os.chdir(sys.path[0])
 
 from pathlib import Path
 
@@ -16,7 +17,6 @@ import sqlite3
 import time
 import os
 import base64
-import hashlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -26,12 +26,10 @@ from utils import exceptions
 
 from sys import platform
 
-if platform == "linux" or platform == "linux2":
+if platform == "linux" or platform == "linux2" or platform == "darwin":
     path = f"{Path(__file__).parents[1]}/maindb/data.db"
     tokens_path = f"{Path(__file__).parents[1]}/maindb/tokens.db"
-elif platform == "darwin":
-    path = f"{Path(__file__).parents[1]}/maindb/data.db"
-    tokens_path = f"{Path(__file__).parents[1]}/maindb/tokens.db"
+
 elif platform == "win32":
     # Windows...
     path = f"{Path(__file__).parents[1]}\\maindb\\data.db"
