@@ -6,10 +6,11 @@ os.chdir(sys.path[0])
 
 import utils.utils as utils
 import utils.exceptions as exceptions
-import schemas
+import utils.schemas as schemas
 from trader import Trader
 from auth.register import register
 from auth.login import login
+from auth.authenticate import authenticate
 
 from flask import Flask, request, abort, jsonify
 from flask_restful import Resource, Api
@@ -23,80 +24,103 @@ api = Api(app)
 
 class Login(Resource):
     def post(self):
-        errors = schemas.LoginSchema().validate(request.args)
+        headers = utils.headers_to_dict(request.headers)
+        errors = schemas.LoginSchema().validate(headers)
         if errors:
             abort(400, str(errors))
 
-        args = request.args
-
         try:
-            token = login(username=args['username'], password=args['password'])
-        except Exception as error:
+            token = login(username=headers['username'], password=headers['password'])
+        except exceptions.AuthenticationError as error:
             abort(400, str(error))
 
         if token:
-            return jsonify({'message': 'success', 'token': token.decode('utf-8')})
-
+            return jsonify({'token': token})
 
 
 class Register(Resource):
     def post(self):
-        errors = schemas.RegisterSchema().validate(request.args)
+        headers = utils.headers_to_dict(request.headers)
+        errors = schemas.RegisterSchema().validate(headers)
         if errors:
             abort(400, str(errors))
 
-        args = request.args
-
-        re = register(email=args['email'], id=args['username'], password=args['password'])
-        if re:
-            return jsonify({'message': 'success'})
-        else:
-            abort(400)
+        try:
+            register(email=headers['email'], username=headers['username'], password=headers['password'])
+        except exceptions.AuthenticationError as error:
+            abort(401, str(error))
 
 
-class ManageUser(Resource):
-    def post(self): #Make sure user is rate limited so they cannot create 1000 accounts
-        errors = schemas.CreateUserSchema().validate(request.args)
-        if errors:
-            abort(400, str(errors))
-
-        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(f"{os.getcwd()}/maindb/user_data.db", isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
-                new_user = Trader.new_user(**request.args)
+                new_user = Trader.new_user(username=(headers['username']).lower(), starting_cash=headers['startingcash'])
                 new_user.initial_save_data(cursor)
 
         return jsonify({'message': f"Succesfully created user {new_user.username} with starting cash of {new_user.cash}"})
 
 
-    def delete(self): #Make sure user is authorized to delete their own account
-        errors = schemas.DeleteUserSchema().validate(request.args)
+class ManageUser(Resource):
+    def delete(self, username):
+        headers = utils.headers_to_dict(request.headers)
+        errors = schemas.AuthSchema().validate(headers)
         if errors:
             abort(400, str(errors))
 
-        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
+        try:
+            authenticate(username, headers['token'])
+        except exceptions.AuthenticationError as error:
+            abort(401, str(error))
+
+
+        with closing(sqlite3.connect("maindb/user_data.db", isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 cursor.execute(
                 "DELETE from UserData WHERE username = ?",
-                (request.args['username'], )
+                (username, )
                 )
 
-        return jsonify({'message': "Success"})
+        with closing(sqlite3.connect("maindb/data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                cursor.execute(
+                "DELETE from users WHERE id = ?",
+                (username, )
+                )
+
+        with closing(sqlite3.connect("maindb/tokens.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                cursor.execute(
+                "DELETE from tokens WHERE id = ?",
+                (username, )
+                )
+
+        return jsonify({'message': f"Succesfully deleted user {username}"})
 
 
 class TraderAPI(Resource):
     def get(self, username):
+        #Validate arguments
         errors = schemas.GetUserDataSchema().validate(request.args)
 
-        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
-            with closing(connection.cursor()) as cursor:
-                try:
-                    trader = Trader.from_db(cursor, username=username)
-                except exceptions.AccountDoesNotExist as error:
-                    errors[username] = "Account does not exist."
+        if not errors:
+            headers = utils.headers_to_dict(request.headers)
+            errors = schemas.AuthSchema().validate(headers)
 
         if errors:
             abort(400, str(errors))
 
+        #Validate token
+        try:
+            authenticate(username, headers['token'])
+        except exceptions.AuthenticationError as error:
+            abort(401, str(error))
+
+
+        with closing(sqlite3.connect(f"{os.getcwd()}/maindb/user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                try:
+                    trader = Trader.from_db(cursor, username=username)
+                except exceptions.AccountDoesNotExist as error:
+                    abort(404, str(error))
 
         if request.args.get('asset'):
             data = getattr(trader, request.args['asset'])
@@ -109,26 +133,41 @@ class TraderAPI(Resource):
 class BuySell(Resource):
     operation = None
 
+    def get(self, username):
+        return jsonify({'message': 'Hello World'})
+
     def post(self, username):
+        #Check if correct arguments are passed
         errors = schemas.BuySellSchema().validate(request.args)
 
-        with closing(sqlite3.connect("user_data.db", isolation_level=None)) as connection:
-            with closing(connection.cursor()) as cursor:
-                try:
-                    trader = Trader.from_db(cursor, username=username)
-
-                    try:
-                        func = getattr(trader, self.operation)
-                        res = func(request.args['coin'], float(request.args['quantity']))
-                        trader.save_data(cursor)
-                    except exceptions.TradeError as error:
-                        errors["TradeError"] = error
-
-                except exceptions.AccountDoesNotExist as error:
-                    errors[username] = "Account does not exist."
+        if not errors:
+            headers = utils.headers_to_dict(request.headers)
+            errors = schemas.AuthSchema().validate(headers)
 
         if errors:
             abort(400, str(errors))
+
+        #Validate token
+        try:
+            authenticate(username, headers['token'])
+        except exceptions.AuthenticationError as error:
+            abort(401, str(error))
+
+
+        with closing(sqlite3.connect("maindb/user_data.db", isolation_level=None)) as connection:
+            with closing(connection.cursor()) as cursor:
+                try:
+                    trader = Trader.from_db(cursor, username=username)
+                except exceptions.AccountDoesNotExist as error:
+                    abort(404, str(error))
+
+                try:
+                    func = getattr(trader, self.operation)
+                    res = func(request.args['coin'], float(request.args['amount']))
+                    trader.save_data(cursor)
+                except exceptions.TradeError as error:
+                    abort(400, str(error))
+
 
         data = {
         'message': res,
@@ -149,7 +188,7 @@ api.add_resource(Buy, '/trader/<string:username>/buy', endpoint='trader/buy')
 api.add_resource(Sell, '/trader/<string:username>/sell', endpoint='trader/sell')
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
-api.add_resource(ManageUser, '/manage')
+api.add_resource(ManageUser, '/<string:username>/manage')
 
 
 if __name__ == '__main__':

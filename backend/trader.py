@@ -18,7 +18,7 @@ class Trader:
         self.portfolio = kwargs["portfolio"]
         self.equity = self.calculate_equity()
         self.transaction_history = kwargs["transaction_history"]
-        self.debug = kwargs.get('debug', True)
+        self.debug = kwargs.get('debug', False)
 
 
     @classmethod

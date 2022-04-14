@@ -10,5 +10,18 @@ class BalanceTooLittle(TradeError):
 class NotEnoughCoins(TradeError):
     pass
 
-class AccountDoesNotExist(Exception):
+
+class AuthenticationError(Exception):
+    pass
+
+class AccountDoesNotExist(AuthenticationError):
+    pass
+
+class InvalidPassword(AuthenticationError):
+    pass
+
+class AccountAlreadyExists(AuthenticationError):
+    pass
+
+class InvalidToken(AuthenticationError):
     pass

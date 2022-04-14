@@ -1,13 +1,8 @@
-from marshmallow import Schema, fields, validates, ValidationError
 import utils.utils as utils
+
+from marshmallow import Schema, fields, validates, ValidationError, EXCLUDE
 import os
 
-class CreateUserSchema(Schema):
-    username = fields.Str(required=True)
-    starting_cash = fields.Float(required=True)
-
-class DeleteUserSchema(Schema):
-    username = fields.Str(required=True)
 
 class GetUserDataSchema(Schema):
     asset = fields.Str()
@@ -18,17 +13,31 @@ class GetUserDataSchema(Schema):
         if not asset in assets:
             raise ValidationError("Not a valid asset")
 
+
 class BuySellSchema(Schema):
     coin = fields.Str(required=True)
-    quantity = fields.Float(required=True)
+    amount = fields.Float(required=True)
 
 
-class LoginSchema(Schema):
-    username = fields.Str(required=True)
-    password = fields.Str(required=True)
 
 
-class RegisterSchema(Schema):
+class HeaderSchema(Schema):
+    class Meta:
+        unknown = EXCLUDE
+
+
+class RegisterSchema(HeaderSchema):
     email = fields.Str(required=True)
+    password = fields.Str(required=True)
+    username = fields.Str(required=True)
+    displayname = fields.Str()
+    startingcash = fields.Float(required=True)
+
+
+class AuthSchema(HeaderSchema):
+    token = fields.Str(required=True)
+
+
+class LoginSchema(HeaderSchema):
     username = fields.Str(required=True)
     password = fields.Str(required=True)

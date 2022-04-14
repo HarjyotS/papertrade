@@ -8,64 +8,43 @@ import hashlib
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
+from contextlib import closing
 
-path = f"{os.getcwd()}/auth/maindb/data.db"
-tokens_path = f"{os.getcwd()}/auth/maindb/tokens.db"
+from utils import exceptions
+
+path = f"{os.getcwd()}/maindb/data.db"
+tokens_path = f"{os.getcwd()}/maindb/tokens.db"
 
 def login(username, password):
-    print(path)
-    con = sqlite3.connect(path)
-    cur = con.cursor()
-    try:
-        cur.execute("SELECT * FROM users WHERE id =?", (username.lower(),))
-        data = cur.fetchone()
-        print(data)
-        con.commit()
-        con.close()
-        print(data, "logonfirstdata")
-        print(data[1], type(data[1]))
-        if data is None:
-            print("sus")
-            return False
-        elif data[1] == password:
-            iftok = checktok(username)  # check if token exists
-            print(iftok, "iftok")
-            if iftok is not False:
-                return iftok
-            else:
-                newtok = generatetok(username)
-
-                c = insertok(username, newtok)
-                if c == False:
-                    return False
+    with closing(sqlite3.connect(path, isolation_level=None)) as connection:
+        with closing(connection.cursor()) as cur:
+            cur.execute("SELECT * FROM users WHERE id =?", (username.lower(),))
+            data = cur.fetchone()
+            if data is None:
+                raise exceptions.AccountDoesNotExist(f"{username} does not exist")
+                return False
+            elif data[1] == password:
+                iftok = checktok(username)  # check if token exists
+                if iftok is not False:
+                    return iftok
                 else:
+                    newtok = generatetok(username)
+
+                    c = insertok(username, newtok)
+
                     return newtok
-        else:
-            print("susp")
-    except Exception as e:
-        print(e, "HERE")
-        con.close()
-        return False
+            else:
+                raise exceptions.InvalidPassword(f"{password} is an invalid password")
 
 
 def insertok(username, key):
-    con = sqlite3.connect(
-        tokens_path
-    )
-    cur = con.cursor()
-    try:
-        cur.execute(
-            """INSERT INTO tokens (id, token)
-                VALUES (?, ?)""",
-            (username.lower(), key),
-        )
-        con.commit()
-        con.close()
-        return True
-    except Exception as e:
-        print(e, "HERE1")
-        con.close()
-        return False
+    with closing(sqlite3.connect(tokens_path, isolation_level=None)) as connection:
+        with closing(connection.cursor()) as cur:
+            cur.execute(
+                """INSERT INTO tokens (id, token)
+                    VALUES (?, ?)""",
+                (username.lower(), key),
+            )
 
 
 def generatetok(username):
@@ -80,26 +59,15 @@ def generatetok(username):
         backend=backend,
     )
     key = base64.urlsafe_b64encode(kdf.derive((username + str(time.time())).encode()))
-    print(key)
-    return key
+    return key.decode("utf-8")
 
 
 def checktok(username):
-    con = sqlite3.connect(
-        tokens_path
-    )
-    cur = con.cursor()
-    try:
-        cur.execute("SELECT * FROM tokens WHERE id =?", (username.lower(),))
-        data = cur.fetchone()
-        print(data)
-        con.commit()
-        con.close()
-        if data is None:
-            return False
-        else:
-            return data[1]
-    except Exception as e:
-        print(e, "HERE2")
-        con.close()
-        return False
+    with closing(sqlite3.connect(tokens_path, isolation_level=None)) as con:
+        with closing(con.cursor()) as cur:
+            cur.execute("SELECT * FROM tokens WHERE id =?", (username.lower(),))
+            data = cur.fetchone()
+            if data is None:
+                return False
+            else:
+                return data[1]
