@@ -1,16 +1,10 @@
-from distutils.debug import DEBUG
-import os
 import sys
-
-
-if __name__ == "__main__":
-    os.chdir("..")
-    os.chdir("..")
-    sys.path.append(os.getcwd())
-    os.chdir(sys.path[0])
-
 from pathlib import Path
+sys.path.append(str(Path(__file__).parents[2]))
 
+from utils import utils, exceptions
+
+import os
 from atexit import register
 from logging import exception
 import sqlite3
@@ -20,24 +14,15 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from contextlib import closing
-
-from utils import exceptions
-
 from sys import platform
 
-if platform == "linux" or platform == "linux2" or platform == "darwin":
-    path = f"{Path(__file__).parents[1]}/maindb/data.db"
-    tokens_path = f"{Path(__file__).parents[1]}/maindb/tokens.db"
 
-elif platform == "win32":
-    # Windows...
-    path = f"{Path(__file__).parents[1]}\\maindb\\data.db"
-    tokens_path = f"{Path(__file__).parents[1]}\\maindb\\tokens.db"
-print(path)
+users_path = utils.get_path_to_database(Path(__file__).parents[1], ["maindb", "data.db"])
+tokens_path = utils.get_path_to_database(Path(__file__).parents[1], ["maindb", "tokens.db"])
 
 
-def login(username, password):
-    with closing(sqlite3.connect(path, isolation_level=None)) as connection:
+def login(*, username, password):
+    with closing(sqlite3.connect(users_path, isolation_level=None)) as connection:
         with closing(connection.cursor()) as cur:
             cur.execute("SELECT * FROM users WHERE id =?", (username.lower(),))
             data = cur.fetchone()
@@ -92,6 +77,3 @@ def checktok(username):
                 return False
             else:
                 return data[1]
-
-
-login("TechBro", "password")

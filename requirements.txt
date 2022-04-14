@@ -1,6 +1,5 @@
 pip
 yfinance
-matplotlib
 pandas
 requests
 flask

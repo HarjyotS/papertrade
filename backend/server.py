@@ -1,17 +1,14 @@
-import os
 import sys
-os.chdir("..")
-sys.path.append(os.getcwd())
-os.chdir(sys.path[0])
+from pathlib import Path
+sys.path.append(str(Path(__file__).parents[1]))
 
-import utils.utils as utils
-import utils.exceptions as exceptions
-import utils.schemas as schemas
+from utils import utils, exceptions, schemas
 from trader import Trader
 from auth.register import register
 from auth.login import login
 from auth.authenticate import authenticate
 
+import os
 from flask import Flask, request, abort, jsonify
 from flask_restful import Resource, Api
 from marshmallow import Schema, fields
@@ -20,6 +17,9 @@ from contextlib import closing
 
 app = Flask(__name__)
 api = Api(app)
+user_data_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'user_data.db'])
+user_login_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'data.db'])
+tokens_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'tokens.db'])
 
 
 class Login(Resource):
@@ -51,7 +51,7 @@ class Register(Resource):
             abort(401, str(error))
 
 
-        with closing(sqlite3.connect(f"{os.getcwd()}/maindb/user_data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 new_user = Trader.new_user(username=(headers['username']).lower(), starting_cash=headers['startingcash'])
                 new_user.initial_save_data(cursor)
@@ -72,21 +72,21 @@ class ManageUser(Resource):
             abort(401, str(error))
 
 
-        with closing(sqlite3.connect("maindb/user_data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 cursor.execute(
                 "DELETE from UserData WHERE username = ?",
                 (username, )
                 )
 
-        with closing(sqlite3.connect("maindb/data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(user_login_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 cursor.execute(
                 "DELETE from users WHERE id = ?",
                 (username, )
                 )
 
-        with closing(sqlite3.connect("maindb/tokens.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(tokens_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 cursor.execute(
                 "DELETE from tokens WHERE id = ?",
@@ -115,7 +115,7 @@ class TraderAPI(Resource):
             abort(401, str(error))
 
 
-        with closing(sqlite3.connect(f"{os.getcwd()}/maindb/user_data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 try:
                     trader = Trader.from_db(cursor, username=username)
@@ -154,7 +154,7 @@ class BuySell(Resource):
             abort(401, str(error))
 
 
-        with closing(sqlite3.connect("maindb/user_data.db", isolation_level=None)) as connection:
+        with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 try:
                     trader = Trader.from_db(cursor, username=username)

@@ -1,19 +1,17 @@
-from utils import exceptions
-import os, sys
+import sys
 from pathlib import Path
+sys.path.append(str(Path(__file__).parents[2]))
 
-if __name__ == "__main__":
-    os.chdir("..")
-    os.chdir("..")
-    sys.path.append(os.getcwd())
-    os.chdir(sys.path[0])
+from utils import utils, exceptions
 
 import sqlite3
 from contextlib import closing
 
 
+path = utils.get_path_to_database(Path(__file__).parents[1], ['maindb', 'data.db'])
+
+
 def register(*, email, username, password):
-    path = f"{Path(__file__).parents[1]}/maindb/data.db"
     with closing(sqlite3.connect(path, isolation_level=None)) as con:
         with closing(con.cursor()) as cur:
             data = (

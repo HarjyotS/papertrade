@@ -5,9 +5,8 @@ import time
 import random
 from datetime import datetime
 
-import utils.utils as utils
+from utils import utils, exceptions
 import utils.fetch_data as fetch
-import utils.exceptions as exceptions
 
 
 class Trader:
