@@ -1,3 +1,15 @@
+import os
+import sys
+
+from cv2 import log
+
+os.chdir("..")
+os.chdir("..")
+sys.path.append(os.getcwd())
+os.chdir(sys.path[0])
+
+from pathlib import Path
+
 from atexit import register
 from logging import exception
 import sqlite3
@@ -12,8 +24,20 @@ from contextlib import closing
 
 from utils import exceptions
 
-path = f"{os.getcwd()}/maindb/data.db"
-tokens_path = f"{os.getcwd()}/maindb/tokens.db"
+from sys import platform
+
+if platform == "linux" or platform == "linux2":
+    path = f"{Path(__file__).parents[1]}/maindb/data.db"
+    tokens_path = f"{Path(__file__).parents[1]}/maindb/tokens.db"
+elif platform == "darwin":
+    path = f"{Path(__file__).parents[1]}/maindb/data.db"
+    tokens_path = f"{Path(__file__).parents[1]}/maindb/tokens.db"
+elif platform == "win32":
+    # Windows...
+    path = f"{Path(__file__).parents[1]}\\maindb\\data.db"
+    tokens_path = f"{Path(__file__).parents[1]}\\maindb\\tokens.db"
+print(path)
+
 
 def login(username, password):
     with closing(sqlite3.connect(path, isolation_level=None)) as connection:
@@ -71,3 +95,6 @@ def checktok(username):
                 return False
             else:
                 return data[1]
+
+
+login("TechBro", "password")
