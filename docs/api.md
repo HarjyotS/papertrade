@@ -13,8 +13,9 @@ While easy to use, the papertrade API is also extremely powerful and gives devel
 
 ## Registering an account
 **Example Request:**
-
-`POST api.com/register {email: johnsmith@gmail.com, username: JohnSmith, startingcash: 10000, password: 12345}`
+```
+POST api.com/register {email: 'johnsmith@gmail.com', username: 'JohnSmith', startingcash: 10000, password: '12345'}
+```
 
 **Example Response:**
 
@@ -24,17 +25,49 @@ While easy to use, the papertrade API is also extremely powerful and gives devel
 }
 ```
 
-HTTP Method: `POST`
+**HTTP Method:** `POST`
 
-URL: `api.com/register`
+**URL:** `api.com/register`
 
-Required Arguments: `None`
+**Required Arguments:** `None`
 
-Headers (* denotes required argument): ```{
-  email: string *,
-  username: string *,
-  displayname: string,
-  startingcash: float *,
-  password: string *
+**Headers:** *(red denotes required header)*
+
+```diff
+{
+-  email: string,
+- username: string,
++ displayname: string,
+- startingcash: float,
+- password: string,
 }
 ```
+
+## Logging in and getting a token
+**Example Request:**
+```
+POST api.com/login {username: 'JohnSmith', password: '12345'}
+```
+
+**Example Response:**
+```
+{
+	"token": 'hJSJKDGhsudoghdsuighsIUDGHSUIDGhSUDIGhsiuh31257089HSG'
+}
+```
+    
+**HTTP Method:** `POST`
+
+**URL:** `api.com/login`
+
+**Required Arguments:** `None`
+
+**Headers:** *(red denotes required header)*
+
+```diff
+{
+- username: string,
+- password: string,
+}
+```
+
