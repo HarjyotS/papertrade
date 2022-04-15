@@ -56,7 +56,7 @@ class Register(Resource):
                 new_user = Trader.new_user(username=(headers['username']).lower(), starting_cash=headers['startingcash'])
                 new_user.initial_save_data(cursor)
 
-        return jsonify({'message': f"Succesfully created user {new_user.username} with starting cash of {new_user.cash}"})
+        return jsonify({'message': f"Successfully created user {new_user.username} with starting cash of {new_user.cash}"})
 
 
 class ManageUser(Resource):
@@ -93,7 +93,7 @@ class ManageUser(Resource):
                 (username, )
                 )
 
-        return jsonify({'message': f"Succesfully deleted user {username}"})
+        return jsonify({'message': f"Successfully deleted user {username}"})
 
 
 class TraderAPI(Resource):
@@ -132,9 +132,6 @@ class TraderAPI(Resource):
 
 class BuySell(Resource):
     operation = None
-
-    def get(self, username):
-        return jsonify({'message': 'Hello World'})
 
     def post(self, username):
         #Check if correct arguments are passed
