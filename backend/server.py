@@ -61,6 +61,7 @@ class Register(Resource):
 
 class ManageUser(Resource):
     def delete(self, username):
+        username = username.lower()
         headers = utils.headers_to_dict(request.headers)
         errors = schemas.AuthSchema().validate(headers)
         if errors:
@@ -114,7 +115,7 @@ class TraderAPI(Resource):
         except exceptions.AuthenticationError as error:
             abort(401, str(error))
 
-
+        utils.printall(user_data_path, "UserData")
         with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
                 try:

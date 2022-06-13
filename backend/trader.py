@@ -60,11 +60,14 @@ class Trader:
     @classmethod
     def from_db(cls, cursor, *, username):
         #Returns a dictionary user_data from an sqlite database
+        username = username.lower()
+
         rows = cursor.execute(
         "SELECT username, displayname, cash, portfolio, transaction_history FROM UserData WHERE username = ?",
         (username,),
         ).fetchall()
 
+        print(rows)
         if not rows:
             raise exceptions.AccountDoesNotExist(f"'{username}' is not a valid account")
 
