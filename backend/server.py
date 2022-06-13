@@ -189,4 +189,4 @@ api.add_resource(ManageUser, '/<string:username>/manage')
 
 
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(debug = True, port=8080)
