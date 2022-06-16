@@ -15,7 +15,6 @@ class Trader:
         self.displayname = kwargs.get('displayname', self.username)
         self.cash = kwargs["cash"]
         self.portfolio = kwargs["portfolio"]
-        self.equity = self.calculate_equity()
         self.transaction_history = kwargs["transaction_history"]
         self.debug = kwargs.get('debug', False)
 
@@ -25,7 +24,7 @@ class Trader:
         user_data = {
         "username": username,
         "displayname": username,
-        "cash": int(starting_cash),
+        "cash": float(starting_cash),
         "portfolio": {},
         "transaction_history": []
         }
@@ -38,7 +37,7 @@ class Trader:
             "username": self.username,
             "displayname": self.displayname,
             "cash": self.cash,
-            "equity": self.calculate_equity(),
+            "equity": self.equity,
             "portfolio": self.portfolio,
             "transaction_history": self.transaction_history,
         }
@@ -115,19 +114,19 @@ class Trader:
         (self.username, self.displayname, self.cash, str(self.portfolio), str(self.transaction_history), self.username)
         )
 
-
-    def calculate_equity(self):
-        equity = self.cash
+    @property
+    def equity(self):
+        _equity = self.cash
         for ticker in self.portfolio:
             quantity = self.portfolio[ticker]
-            equity += (quantity * fetch.get_current_price(ticker))
-        return equity
+            _equity += (quantity * fetch.get_current_price(ticker))
+        return _equity
 
 
     def show_balance(self):
         message = f"""
 {datetime.now()}
-Current Equity: {self.calculate_equity()}
+Current Equity: {self.equity}
 Current Cash Balance: {self.cash}
 Coins: {self.portfolio}
         """

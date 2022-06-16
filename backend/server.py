@@ -31,8 +31,10 @@ class Login(Resource):
 
         try:
             token = login(username=headers['username'], password=headers['password'])
-        except exceptions.AuthenticationError as error:
-            abort(400, str(error))
+        except exceptions.AccountDoesNotExist as error:
+            abort(404, str(error))
+        except exceptions.InvalidPassword as error:
+            abort(401, str(error))
 
         if token:
             return jsonify({'token': token})
@@ -47,9 +49,8 @@ class Register(Resource):
 
         try:
             register(email=headers['email'], username=headers['username'], password=headers['password'])
-        except exceptions.AuthenticationError as error:
-            abort(401, str(error))
-
+        except exceptions.AccountAlreadyExists as error:
+            abort(409, str(error))
 
         with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
             with closing(connection.cursor()) as cursor:
@@ -60,15 +61,14 @@ class Register(Resource):
 
 
 class ManageUser(Resource):
-    def delete(self, username):
-        username = username.lower()
+    def delete(self):
         headers = utils.headers_to_dict(request.headers)
         errors = schemas.AuthSchema().validate(headers)
         if errors:
             abort(400, str(errors))
 
         try:
-            authenticate(username, headers['token'])
+            username = authenticate(headers['token'])
         except exceptions.AuthenticationError as error:
             abort(401, str(error))
 
@@ -98,7 +98,7 @@ class ManageUser(Resource):
 
 
 class TraderAPI(Resource):
-    def get(self, username):
+    def get(self):
         #Validate arguments
         errors = schemas.GetUserDataSchema().validate(request.args)
 
@@ -111,7 +111,7 @@ class TraderAPI(Resource):
 
         #Validate token
         try:
-            authenticate(username, headers['token'])
+            username = authenticate(headers['token'])
         except exceptions.AuthenticationError as error:
             abort(401, str(error))
 
@@ -134,7 +134,7 @@ class TraderAPI(Resource):
 class BuySell(Resource):
     operation = None
 
-    def post(self, username):
+    def post(self):
         #Check if correct arguments are passed
         errors = schemas.BuySellSchema().validate(request.args)
 
@@ -147,7 +147,7 @@ class BuySell(Resource):
 
         #Validate token
         try:
-            authenticate(username, headers['token'])
+            username = authenticate(headers['token'])
         except exceptions.AuthenticationError as error:
             abort(401, str(error))
 
@@ -163,9 +163,12 @@ class BuySell(Resource):
                     func = getattr(trader, self.operation)
                     res = func(request.args['coin'], float(request.args['amount']))
                     trader.save_data(cursor)
-                except exceptions.TradeError as error:
+                except exceptions.CurrencyNotSupported as error:
                     abort(400, str(error))
-
+                except exceptions.BalanceTooLittle as error:
+                    abort(404, str(error))
+                except exceptions.NotEnoughCoins as error:
+                    abort(404, str(error))
 
         data = {
         'message': res,
@@ -181,12 +184,12 @@ class Sell(BuySell):
     operation = "sell"
 
 
-api.add_resource(TraderAPI, '/trader/<string:username>')
-api.add_resource(Buy, '/trader/<string:username>/buy', endpoint='trader/buy')
-api.add_resource(Sell, '/trader/<string:username>/sell', endpoint='trader/sell')
+api.add_resource(TraderAPI, '/trader')
+api.add_resource(Buy, '/trader/buy', endpoint='trader/buy')
+api.add_resource(Sell, '/trader/sell', endpoint='trader/sell')
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
-api.add_resource(ManageUser, '/<string:username>/manage')
+api.add_resource(ManageUser, '/manage')
 
 
 if __name__ == '__main__':

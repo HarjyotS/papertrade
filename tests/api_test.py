@@ -10,7 +10,7 @@ api = "http://localhost:5000"
 
 # Create a new user TechBro with a million dollars
 args = {
-"email": "tanujsiripurapu@gmail.com",
+"email": "john@gmail.com",
 "password": "abc123",
 "username": "TechBro",
 "StartingCash": "1000000"
@@ -39,7 +39,7 @@ args = {
 "token": token
 }
 
-data = requests.get(f"{api}/trader/TechBro", headers={**args}).json()
+data = requests.get(f"{api}/trader", headers={**args}).json()
 print(data)
 
 #Should be 1 million dollars in cash and username should be correct
@@ -52,10 +52,10 @@ args = {
 "token": token
 }
 
-ret = requests.post(f"{api}/trader/TechBro/buy?coin=BTC-USD&amount=20", headers={**args}).json()
+ret = requests.post(f"{api}/trader/buy?coin=BTC-USD&amount=20", headers={**args}).json()
 print(ret)
 
-data = requests.get(f"{api}/trader/TechBro", headers={**args}).json()
+data = requests.get(f"{api}/trader", headers={**args}).json()
 print(data)
 assert data['cash'] == 1000000 - (fetch.get_current_price("BTC-USD") * 20)
 assert data['portfolio']['BTC-USD'] == 20
@@ -66,10 +66,10 @@ args = {
 "token": token
 }
 
-ret = requests.post(f"{api}/trader/TechBro/sell?coin=BTC-USD&amount=20", headers={**args}).json()
+ret = requests.post(f"{api}/trader/sell?coin=BTC-USD&amount=20", headers={**args}).json()
 print(ret)
 
-data = requests.get(f"{api}/trader/TechBro", headers={**args}).json()
+data = requests.get(f"{api}/trader", headers={**args}).json()
 print(data)
 #Should be 0 Bitcoin and original starting amount in cash
 assert data['cash'] == 1000000
@@ -82,5 +82,5 @@ args = {
 }
 
 
-ret = requests.delete(f"{api}/TechBro/manage", headers={**args}).json()
+ret = requests.delete(f"{api}/manage", headers={**args}).json()
 print(ret)
