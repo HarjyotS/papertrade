@@ -1,86 +1,109 @@
 import sys
 from pathlib import Path
+
+from httpx import StatusCode
 sys.path.append(str(Path(__file__).parents[1]))
 
 from utils import fetch_data as fetch
 import requests
 
 api = "http://localhost:5000"
+testAccountUsername = "techbro"
+testAccountPassword = "abc123"
+testAccountEmail = "tanujsiripurapu@gmail.com"
+testAccountStartingCash = 1000000
+testCoin = "BTC-USD"
 
 
-# Create a new user TechBro with a million dollars
-args = {
-"email": "john@gmail.com",
-"password": "abc123",
-"username": "TechBro",
-"StartingCash": "1000000"
-}
-
-ret = requests.post(f"{api}/register", headers={**args}).json()
-print(ret)
-
-
-# Login to the account you just created
-args = {
-    "username": "TechBro",
-    "password": "abc123"
-}
-
-ret = requests.post(f"{api}/login", headers={**args}).json()
-token = ret.get('token')
-print(ret)
-
-#Token should not be None
-assert token != None
+def get_token(**kwargs):
+    args = {
+        "username": kwargs.get('username', testAccountUsername),
+        "password": kwargs.get('password', testAccountPassword)
+    }
+    
+    res = requests.post(f"{api}/login", headers={**args})
+    data = res.json()
+    return res, data, data.get('token')
 
 
-# See the TechBro's portfolio
-args = {
-"token": token
-}
+def test_create():
+    # Create a new user TechBro with a million dollars
+    args = {
+    "email": testAccountEmail,
+    "password": testAccountPassword,
+    "username": testAccountUsername,
+    "StartingCash": str(testAccountStartingCash)
+    }
 
-data = requests.get(f"{api}/trader", headers={**args}).json()
-print(data)
-
-#Should be 1 million dollars in cash and username should be correct
-assert data['cash'] == 1000000
-assert data['username'] == "techbro"
-
-
-# Buy 20 BTC
-args = {
-"token": token
-}
-
-ret = requests.post(f"{api}/trader/buy?coin=BTC-USD&amount=20", headers={**args}).json()
-print(ret)
-
-data = requests.get(f"{api}/trader", headers={**args}).json()
-print(data)
-assert data['cash'] == 1000000 - (fetch.get_current_price("BTC-USD") * 20)
-assert data['portfolio']['BTC-USD'] == 20
+    res = requests.post(f"{api}/register", headers={**args})
+    data = res.json()
+    assert res.status_code == 200, data.get('message')
 
 
-# Sell all BTC
-args = {
-"token": token
-}
+def test_login():
+    # Login to the account you just created
+    res, data, token = get_token()
+    #Token should not be None
+    assert token != None, data.get('message')
+    assert res.status_code == 200, data.get('message')
+    
 
-ret = requests.post(f"{api}/trader/sell?coin=BTC-USD&amount=20", headers={**args}).json()
-print(ret)
+def test_portfolio():
+    # See the TechBro's portfolio
+    res, data, token = get_token()
+    args = {
+    "token": token
+    }
 
-data = requests.get(f"{api}/trader", headers={**args}).json()
-print(data)
-#Should be 0 Bitcoin and original starting amount in cash
-assert data['cash'] == 1000000
-assert data['portfolio']['BTC-USD'] == 0
+    data = requests.get(f"{api}/trader", headers={**args}).json()
 
-
-# Delete the user
-args = {
-"token": token
-}
+    #Should be 1 million dollars in cash and username should be correct
+    assert data.get('cash') == testAccountStartingCash, f"Cash balance should be {testAccountStartingCash} but was actually {data.get('cash')}"
+    assert data.get('username') == testAccountUsername, f"Username should be {testAccountUsername} but was actually {data.get('username')}"
 
 
-ret = requests.delete(f"{api}/manage", headers={**args}).json()
-print(ret)
+def test_buy():
+    res, data, token = get_token()
+    args = {
+    "token": token
+    }
+
+    res = requests.post(f"{api}/trader/buy?coin={testCoin}&amount=20", headers={**args})
+    data = res.json()
+    assert res.status_code == 200, data.get('message') 
+
+    data = requests.get(f"{api}/trader", headers={**args}).json()
+
+    assert data.get('cash') == testAccountStartingCash - (fetch.get_current_price(testCoin) * 20), f"Cash balance should be {testAccountStartingCash - (fetch.get_current_price(testCoin) * 20)} but was actually {data.get('cash')}"
+    assert data['portfolio'].get(testCoin) == 20, f"Account should contain 20 {testCoin} but actually contained {data['portfolio'].get(testCoin)} {testCoin}"
+
+
+def test_sell():
+    # Sell all BTC
+    res, data, token = get_token()
+    args = {
+    "token": token
+    }
+
+    res = requests.post(f"{api}/trader/sell?coin={testCoin}&amount=20", headers={**args})
+    data = res.json()
+    assert res.status_code == 200, data.get('message')
+
+    data = requests.get(f"{api}/trader", headers={**args}).json()
+    
+    #Should be 0 Bitcoin and original starting amount in cash
+    assert data.get('cash') == testAccountStartingCash, f"Cash balance should be {testAccountStartingCash} but was actually {data.get('cash')}"
+    assert data['portfolio'].get(testCoin) == 0, f"Account should contain 0 {testCoin} but actually contained {data['portfolio'].get(testCoin)} {testCoin}"
+
+
+def test_delete():
+    # Delete the user
+    res, data, token = get_token()
+    args = {
+    "token": token
+    }
+
+
+    res = requests.delete(f"{api}/manage", headers={**args})
+    data = res.json()
+    assert res.status_code == 200, data.get('message') 

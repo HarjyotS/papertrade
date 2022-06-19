@@ -103,3 +103,8 @@ class Trader:
             raise TypeError(f"Unsupported status code: {res.status_code} Data: {data}")
 
         return res.status_code, data
+
+
+if __name__ == "__main__":
+    tanuj = Trader.from_login(username="tanujks", password="abc123")
+    print(tanuj.portfolio)
