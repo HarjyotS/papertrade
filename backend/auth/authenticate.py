@@ -11,17 +11,13 @@ from contextlib import closing
 path = utils.get_path_to_database(Path(__file__).parents[1], ['maindb', 'tokens.db'])
 
 
-def authenticate(username, token):
+def authenticate(token):
     with closing(sqlite3.connect(path, isolation_level=None)) as con:
         with closing(con.cursor()) as cur:
-            tok = cur.execute(
-                "SELECT token FROM tokens WHERE id =?", (username.lower(),)
+            username = cur.execute(
+                "SELECT id FROM tokens WHERE token =?", (token,)
             ).fetchone()
-            if not tok:
-                raise exceptions.AccountDoesNotExist(
-                    f"Account: '{username}' does not exist or has not been logged in"
-                )
-            elif token != tok[0]:
+            if not username:
                 raise exceptions.InvalidToken("Improper token passed")
             else:
-                return True
+                return username[0]

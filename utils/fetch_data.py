@@ -42,7 +42,7 @@ def get_current_price(currency):
     if currency in supported:
         ticker = yf.Ticker(currency)
         todays_data = ticker.history(period="1d")
-        return todays_data["Close"][0]
+        return round(todays_data["Close"][0], 2)
     else:
         raise exceptions.CurrencyNotSupported(
             "This currency does not exist or is not supported"
