@@ -45,12 +45,15 @@
   </head>
   <body>
     <script>
-      // check if token is in window.cookie
-      if(document.cookie.includes("token")){
-        // if token is in cookie, redirect to dashboard
-        console.log("token found in cookie" + document.cookie. split(';')[1].split('=')[1]);
+      token = getCookie("token");
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
       }
-    </script>
+      console.log(token)
+  </script>
+
     <script>
       // when login clicked send details to backend with axios then log the response
       function log() {
@@ -75,6 +78,9 @@
             token = response.data.token;
             
             document.cookie = "token=" + response.data.token;
+          }).then(function(){
+            // redirect to dashboard
+            window.location.href = "http://localhost:5000/dashboard";
           })
           .catch(function (error) {
             console.log(error);

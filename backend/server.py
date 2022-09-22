@@ -1,3 +1,4 @@
+from email import header
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parents[1]))
@@ -9,13 +10,13 @@ from auth.login import login
 from auth.authenticate import authenticate
 
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, render_template, make_response
 from flask_restful import Resource, Api
 from marshmallow import Schema, fields
 import sqlite3
 from contextlib import closing
 
-app = Flask(__name__, static_folder='../frontend')
+app = Flask(__name__, static_folder='../frontend', template_folder='../templates')
 api = Api(app)
 user_data_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'user_data.db'])
 user_login_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'data.db'])
@@ -24,6 +25,14 @@ class Home(Resource):
     def get(self):
         # return the index.html file formt he frontend folder
         return app.send_static_file('index.html')
+
+class Dashboard(Resource):
+    def get(self):
+        # return the dashboard.html file formt he templates folder
+        resp = make_response(render_template('dashboard.html', title='Dashboard '))
+        resp.headers['Content-type'] = 'text/html; charset=utf-8'
+
+        return resp
 
 class Login(Resource):
     def post(self):
@@ -195,8 +204,8 @@ api.add_resource(Sell, '/trader/sell', endpoint='trader/sell')
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
 api.add_resource(ManageUser, '/manage')
-api.add_resource(Home, '/home')
-
+api.add_resource(Home, '/')
+api.add_resource(Dashboard, '/dashboard')
 
 if __name__ == '__main__':
     app.run(debug = True)
