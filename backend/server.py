@@ -15,16 +15,20 @@ from marshmallow import Schema, fields
 import sqlite3
 from contextlib import closing
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend')
 api = Api(app)
 user_data_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'user_data.db'])
 user_login_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'data.db'])
 tokens_path = utils.get_path_to_database(Path(__file__).parent, ['maindb', 'tokens.db'])
-
+class Home(Resource):
+    def get(self):
+        # return the index.html file formt he frontend folder
+        return app.send_static_file('index.html')
 
 class Login(Resource):
     def post(self):
         headers = utils.headers_to_dict(request.headers)
+        print(headers)
         errors = schemas.LoginSchema().validate(headers)
         if errors:
             abort(400, str(errors))
@@ -45,6 +49,7 @@ class Register(Resource):
         headers = utils.headers_to_dict(request.headers)
         errors = schemas.RegisterSchema().validate(headers)
         if errors:
+            print(errors)
             abort(400, str(errors))
 
         try:
@@ -190,6 +195,7 @@ api.add_resource(Sell, '/trader/sell', endpoint='trader/sell')
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
 api.add_resource(ManageUser, '/manage')
+api.add_resource(Home, '/home')
 
 
 if __name__ == '__main__':

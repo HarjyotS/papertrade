@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+      var token = "";	
+    </script>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background-color: #465c69;
+        font-family: "Courier New", Courier, monospace;
+        color: white;
+      }
+      .title {
+        color: #fff;
+        font-size: 50px;
+        text-align: center;
+        margin-top: 10px;
+        font-family: "Courier New", Courier, monospace;
+      }
+      .tagline {
+        text-align: center;
+        color: white;
+      }
+
+      .login {
+        width: 300px;
+        height: 300px;
+        background-color: #465c69;
+        margin: 0 auto;
+        margin-top: 50px;
+        padding-top: 10px;
+        padding-left: 50px;
+        border-radius: 15px;
+        -webkit-border-radius: 15px;
+        -moz-border-radius: 15px;
+        color: white;
+      }
+    </style>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PaperTrade</title>
+  </head>
+  <body>
+    <script>
+      // check if token is in window.cookie
+      if(document.cookie.includes("token")){
+        // if token is in cookie, redirect to dashboard
+        console.log("token found in cookie" + document.cookie. split(';')[1].split('=')[1]);
+      }
+    </script>
+    <script>
+      // when login clicked send details to backend with axios then log the response
+      function log() {
+        console.log("login clicked");
+        console.log(document.getElementById("username").value);
+        console.log(document.getElementById("password").value);
+        // set username and password to variables
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+        // send the username and password to the login page as request headers
+        axios
+          .post("/login", {},{
+            headers: {
+              username: username,
+              password: password,
+            },
+          })
+          .then(function (response) {
+            console.log(response);
+            // store cookie and username in cookie
+            document.cookie = "username=" +password;
+            token = response.data.token;
+            
+            document.cookie = "token=" + response.data.token;
+          })
+          .catch(function (error) {
+            console.log(error);
+            window.alert("Incorrect username or password");
+          });
+      }
+      
+    </script> 
+    <h1 class="title">Paper Trade</h1>
+    <p class="tagline"><b>Your</b> paper crypto trader.</p>
+    <!-- create a login form with username and password -->
+
+    <label for="username">Username</label>
+    <input
+      type="text"
+      name="username"
+      id="username"
+      placeholder="Enter your username"
+    />
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      placeholder="Enter your password"
+    />
+    <button onclick="log()" id="log">Login</button>
+  </body>
+</html>
