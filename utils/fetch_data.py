@@ -40,7 +40,7 @@ supported = [
 
 def get_current_price(currency):
     if currency in supported:
-        ticker = yf.Ticker(currency)
+        ticker = yf.Ticker(currency)  # lol
         todays_data = ticker.history(period="1d")
         return round(todays_data["Close"][0], 2)
     else:
