@@ -3,6 +3,11 @@
   <head>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
+        window.addEventListener("load", function(){
+          get()
+        })
+    </script>
+    <script>
         const token = getCookie("token");
         function getCookie(name) {
           const value = `; ${document.cookie}`;
@@ -16,16 +21,37 @@
         }else{
           console.log("token exists")
         }
-        axios
-          .get("/trader", {},{
+        function get(){
+          axios
+          .get("/trader",{
             headers: {
               token: token,
-          
             },
           })
           .then(function (response) {
             console.log(response);
+            document.getElementById("cash").innerHTML ="Your Cash: "+ response. data.cash;   ;
           });
+        }
+        function buy(stock){
+          axios
+          .post("/trader/buy",{
+            coin: stock,
+            amount: 1,
+          },{
+            headers: {
+              token: token,
+            }
+          } )
+          .then(function (response) {
+            console.log(response);
+
+          });
+        }
+        
+    </script>
+    <script>
+      
     </script>
     <meta charset="UTF-8" />
     <style>
@@ -54,5 +80,7 @@
   </head>
   <body>
     <h1 class="title">Welcome to the {{title}}</h1>
+    <h3 id="cash">Your Cash: </h3>
+    <!-- <button  onclick=" get">get data print</button> -->
   </body>
 </html>

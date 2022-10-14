@@ -66,6 +66,7 @@ class Trader:
 
     def get_user_data(self):
         url, headers = URLs.get_portfolio_url(self.token)
+        print(url, headers)
         res = requests.get(url, headers=headers)
         data = res.json()
         if res.status_code != 200:
@@ -106,5 +107,5 @@ class Trader:
 
 
 if __name__ == "__main__":
-    tanuj = Trader.from_login(username="tanujks", password="abc123")
-    print(tanuj.portfolio)
+    tanuj = Trader.from_login(username="hello", password="abc123")
+    print(tanuj.get_user_data())

@@ -118,10 +118,11 @@ class TraderAPI(Resource):
 
         if not errors:
             headers = utils.headers_to_dict(request.headers)
+            print(headers)
             errors = schemas.AuthSchema().validate(headers)
 
         if errors:
-            abort(400, str(errors))
+            abort(400, str(errors)+"heh")
 
         #Validate token
         try:
@@ -154,7 +155,9 @@ class BuySell(Resource):
 
         if not errors:
             headers = utils.headers_to_dict(request.headers)
+            print(request.headers)
             errors = schemas.AuthSchema().validate(headers)
+        print(errors)
 
         if errors:
             abort(400, str(errors))
@@ -167,6 +170,7 @@ class BuySell(Resource):
 
 
         with closing(sqlite3.connect(user_data_path, isolation_level=None)) as connection:
+            
             with closing(connection.cursor()) as cursor:
                 try:
                     trader = Trader.from_db(cursor, username=username)
@@ -175,6 +179,7 @@ class BuySell(Resource):
 
                 try:
                     func = getattr(trader, self.operation)
+                    print(request.args)
                     res = func(request.args['coin'], float(request.args['amount']))
                     trader.save_data(cursor)
                 except exceptions.CurrencyNotSupported as error:
