@@ -70,6 +70,29 @@
             upd();
           });
       }
+      function setPort(){
+        // get the trader profile and create a table in the element ides with all the coins and their quantities
+        axios
+          .get("/trader", {
+            headers: { token: token },
+          })
+          .then(function (response) {
+            console.log(response);
+            var table = document.getElementById("ides");
+            var row = table.insertRow(0);
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            cell1.innerHTML = "Coin";
+            cell2.innerHTML = "Quantity";
+            for (var i = 0; i < response.data.portfolio.length; i++) {
+              var row = table.insertRow(i+1);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              cell1.innerHTML = response.data.portfolio[i].coin;
+              cell2.innerHTML = response.data.portfolio[i].quantity;
+            }
+          });
+      }
     </script>
     <script>
       upd();
@@ -112,7 +135,15 @@
     <input type="text" id="scrypto" name="crypto" />
     <label for="quantity">Quantity:</label>
     <input type="text" id="squantity" name="quantity" />
-    <input type="submit" value="Buy" onclick="sell()" />
+    <input type="submit" value="Sell" onclick="sell()" />
 
+    <div >
+      <!-- code for showing assets in portafolio -->
+        <table id="ides">
+          <tr>
+           
+          </tr> 
+        </table>
+    </div>
   </body>
 </html>
