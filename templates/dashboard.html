@@ -3,55 +3,56 @@
   <head>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
-        window.addEventListener("load", function(){
-          get()
-        })
-    </script>
-    <script>
-        const token = getCookie("token");
-        function getCookie(name) {
-          const value = `; ${document.cookie}`;
-          const parts = value.split(`; ${name}=`);
-          if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-        console.log(token)
+      function upd() {
+        console.log(token);
         if (token == undefined) {
-          console.log("redirecting to login page")
+          console.log("redirecting to login page");
           window.location.href = "http://localhost:5000/";
-        }else{
-          console.log("token exists")
+        } else {
+          console.log("token exists");
         }
-        function get(){
-          axios
-          .get("/trader",{
-            headers: {
-              token: token,
-            },
+        axios
+          .get("/trader", {
+            headers: { token: token },
           })
           .then(function (response) {
             console.log(response);
-            document.getElementById("cash").innerHTML ="Your Cash: "+ response. data.cash;   ;
+            document.getElementById("eq").innerHTML =
+              "Equity:  " + response.data.equity;
+            document.getElementById("cash").innerHTML =
+              "Cash:  " + response.data.cash;
           });
-        }
-        function buy(stock){
-          axios
-          .post("/trader/buy",{
-            coin: stock,
-            amount: 1,
-          },{
-            headers: {
-              token: token,
+      }
+      const token = getCookie("token");
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+      }
+
+      function buy() {
+        var ticker = document.getElementById("crypto").value;
+        var quantity = document.getElementById("quantity").value;
+        axios
+          .post(
+            "/trader/buy?coin=" + ticker + "&amount=" + quantity,
+            {},
+            {
+              headers: { token: token },
             }
-          } )
+          )
           .then(function (response) {
             console.log(response);
-
+            document.getElementById("eq").innerHTML =
+              "Equity:  " + response.data.equity;
+            document.getElementById("cash").innerHTML =
+              "Cash:  " + response.data.cash;
+            upd();
           });
-        }
-        
+      }
     </script>
     <script>
-      
+      upd();
     </script>
     <meta charset="UTF-8" />
     <style>
@@ -71,8 +72,6 @@
         text-align: center;
         color: white;
       }
-
-
     </style>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -80,7 +79,13 @@
   </head>
   <body>
     <h1 class="title">Welcome to the {{title}}</h1>
-    <h3 id="cash">Your Cash: </h3>
-    <!-- <button  onclick=" get">get data print</button> -->
+    <p id="eq">Equity:</p>
+    <p id="cash">Cash:</p>
+    <!-- form to buy a crypto -->
+    <label for="crypto">Crypto:</label>
+    <input type="text" id="crypto" name="crypto" />
+    <label for="quantity">Quantity:</label>
+    <input type="text" id="quantity" name="quantity" />
+    <input type="submit" value="Buy" onclick="buy()" />
   </body>
 </html>
