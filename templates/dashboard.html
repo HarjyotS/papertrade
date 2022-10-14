@@ -50,6 +50,26 @@
             upd();
           });
       }
+      function sell() {
+        var ticker = document.getElementById("scrypto").value;
+        var quantity = document.getElementById("squantity").value;
+        axios
+          .post(
+            "/trader/sell?coin=" + ticker + "&amount=" + quantity,
+            {},
+            {
+              headers: { token: token },
+            }
+          )
+          .then(function (response) {
+            console.log(response);
+            document.getElementById("eq").innerHTML =
+              "Equity:  " + response.data.equity;
+            document.getElementById("cash").innerHTML =
+              "Cash:  " + response.data.cash;
+            upd();
+          });
+      }
     </script>
     <script>
       upd();
@@ -87,5 +107,12 @@
     <label for="quantity">Quantity:</label>
     <input type="text" id="quantity" name="quantity" />
     <input type="submit" value="Buy" onclick="buy()" />
+<br><br>
+    <label for="crypto">Crypto:</label>
+    <input type="text" id="scrypto" name="crypto" />
+    <label for="quantity">Quantity:</label>
+    <input type="text" id="squantity" name="quantity" />
+    <input type="submit" value="Buy" onclick="sell()" />
+
   </body>
 </html>
